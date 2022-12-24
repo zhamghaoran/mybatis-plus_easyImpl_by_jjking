@@ -12,28 +12,47 @@ import java.util.Map;
 
 
 public class SqlExecute<T> {
-    private Connection connection;
+    private final Connection connection;
+    private ConditionBuilder<T> conditionBuilder;
+
+
     public SqlExecute() throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         this.connection = ConnectionFactory.getSqlConnection();
     }
-    private String sqlMakeFactory(Map<String,String> map,Class<?> className) {
+
+    private String sqlMakeFactory(Class<?> className) {
         StringBuilder stringBuilder = new StringBuilder();
         String classNameSimpleName = className.getSimpleName();
         stringBuilder.append("select * from ").append(classNameSimpleName).append(" ");
-        if (map != null) {
-            stringBuilder.append("where ");
+        Map<String,String> map = conditionBuilder.getEqualCondition();
+        stringBuilder.append("where ");
+        boolean mark = false;
+        if (conditionBuilder.getEqualCondition().size() != 0) {
             for (Map.Entry<String ,String> i : map.entrySet()) {
                 stringBuilder.append(i.getKey()).append(" = ").append(i.getValue()).append(" and ");
-
             }
-            stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
+            mark = true;
         }
+        if (conditionBuilder.getBtCondition().size() != 0) {
+            map = conditionBuilder.getBtCondition();
+            for (Map.Entry<String, String> i : map.entrySet()) {
+                stringBuilder.append(i.getKey()).append(" > ").append(i.getValue()).append(" and ");
+            }
+        }
+        if (conditionBuilder.getLtCondition().size() != 0) {
+            map = conditionBuilder.getLtCondition();
+            for (Map.Entry<String ,String> i : map.entrySet()) {
+                stringBuilder.append(i.getKey()).append(" < ").append(i.getValue()).append(" and ");
+            }
+        }
+        stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
         stringBuilder.append(";");
         return stringBuilder.toString();
     }
     public T selectOne(ConditionBuilder<T> conditions) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
+        this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
-        String s = sqlMakeFactory(conditions.getConditions(), aClass);
+        String s = sqlMakeFactory(aClass);
         System.out.println(s);
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -53,8 +72,10 @@ public class SqlExecute<T> {
         return o;
     }
     public List<T> selectList(ConditionBuilder<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
-        String s = sqlMakeFactory(conditions.getConditions(), aClass);
+        String s = sqlMakeFactory(aClass);
+        System.out.println(s);
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         ResultSet resultSet = preparedStatement.executeQuery();
         ResultSetMetaData metaData = resultSet.getMetaData();

@@ -2,19 +2,19 @@ package org.zhr;
 
 import org.zhr.Service.ConditionBuilder;
 import org.zhr.Service.SqlExecute;
-import org.zhr.entity.COURSE;
+import org.zhr.entity.STUDENT;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException {
-        ConditionBuilder<COURSE> courseBuilder = new ConditionBuilder<>(COURSE.class);
-        SqlExecute<COURSE> courseSql = new SqlExecute<>();
-        List<COURSE> course = courseSql.selectList(courseBuilder.where(COURSE::getXKLB, "'必修'"));
-        System.out.println(Arrays.toString(course.toArray()));
+        ConditionBuilder<STUDENT> studentConditionBuilder = new ConditionBuilder<>(STUDENT.class);
+        ConditionBuilder<STUDENT> lt = studentConditionBuilder.bt(STUDENT::getSAGE, 19).lt(STUDENT::getSAGE, 25);
+        SqlExecute<STUDENT> studentSqlExecute = new SqlExecute<>();
+        List<STUDENT> students = studentSqlExecute.selectList(lt);
+        students.forEach(System.out::println);
     }
 }
