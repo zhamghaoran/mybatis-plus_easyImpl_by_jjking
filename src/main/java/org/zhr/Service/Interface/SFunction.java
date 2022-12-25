@@ -1,4 +1,4 @@
-package org.zhr.Service;
+package org.zhr.Service.Interface;
 
 import java.io.Serializable;
 import java.util.function.Function;

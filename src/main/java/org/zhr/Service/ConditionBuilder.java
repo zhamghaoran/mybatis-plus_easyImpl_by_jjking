@@ -1,5 +1,7 @@
 package org.zhr.Service;
 
+import org.zhr.Service.Interface.SFunction;
+
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,7 +39,7 @@ public class ConditionBuilder<T> {
     }
 
     public <t, R> ConditionBuilder<T> eq(SFunction<t, R> sFunction, String condition) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException {
-        return addCpndition(sFunction,condition,EQUAL_CONDITION);
+        return addCpndition(sFunction,"'" + condition + "'",EQUAL_CONDITION);
     }
 
     public <t, R> ConditionBuilder<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {

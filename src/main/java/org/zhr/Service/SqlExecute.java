@@ -1,5 +1,6 @@
 package org.zhr.Service;
 
+import lombok.extern.java.Log;
 import org.zhr.utils.ConnectionFactory;
 
 import java.io.IOException;
@@ -7,10 +8,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-
+@Log
 public class SqlExecute<T> {
     private final Connection connection;
     private ConditionBuilder<T> conditionBuilder;
@@ -20,7 +22,7 @@ public class SqlExecute<T> {
         this.connection = ConnectionFactory.getSqlConnection();
     }
 
-    private String sqlMakeFactory(Class<?> className) {
+    private String SelectSqlMakeFactory(Class<?> className) {
         StringBuilder stringBuilder = new StringBuilder();
         String classNameSimpleName = className.getSimpleName();
         stringBuilder.append("select * from ").append(classNameSimpleName).append(" ");
@@ -38,21 +40,41 @@ public class SqlExecute<T> {
             for (Map.Entry<String, String> i : map.entrySet()) {
                 stringBuilder.append(i.getKey()).append(" > ").append(i.getValue()).append(" and ");
             }
+            mark = true;
         }
         if (conditionBuilder.getLtCondition().size() != 0) {
             map = conditionBuilder.getLtCondition();
             for (Map.Entry<String ,String> i : map.entrySet()) {
                 stringBuilder.append(i.getKey()).append(" < ").append(i.getValue()).append(" and ");
             }
+            mark = true;
         }
-        stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
+        if (mark)
+            stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
         stringBuilder.append(";");
+        log.info(stringBuilder.toString());
         return stringBuilder.toString();
     }
+
+    private String InsertSqlFactory(List<String> key,List<String> val,String tableName) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("insert into ").append(tableName).append(" ");
+        sql.append("( ");
+        key.forEach(i -> sql.append(i).append(" ,"));
+        sql.delete(sql.length() - 1,sql.length());
+        sql.append(" ) ");
+        sql.append("values ( ");
+        val.forEach(i -> sql.append(i).append(" ,"));
+        sql.delete(sql.length() - 1,sql.length());
+        sql.append(" ) ").append(";");
+        log.info(sql.toString());
+        return sql.toString();
+    }
+
     public T selectOne(ConditionBuilder<T> conditions) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
         this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
-        String s = sqlMakeFactory(aClass);
+        String s = SelectSqlMakeFactory(aClass);
         System.out.println(s);
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -74,8 +96,7 @@ public class SqlExecute<T> {
     public List<T> selectList(ConditionBuilder<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
-        String s = sqlMakeFactory(aClass);
-        System.out.println(s);
+        String s = SelectSqlMakeFactory(aClass);
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         ResultSet resultSet = preparedStatement.executeQuery();
         ResultSetMetaData metaData = resultSet.getMetaData();
@@ -92,5 +113,26 @@ public class SqlExecute<T> {
             result.add(o);
         }
         return result;
+    }
+    public int insert(T t) throws SQLException {
+        Class<?> aClass = t.getClass();
+        Field[] declaredFields = aClass.getDeclaredFields();
+        List<String> name = new ArrayList<>();
+        List<String> val = new ArrayList<>();
+        Arrays.stream(declaredFields).forEach((i) -> name.add(i.getName()));
+        Arrays.stream(declaredFields).forEach(i -> {
+            try {
+                i.setAccessible(true);
+                if (!i.getType().getTypeName().equals("java.lang.String"))
+                    val.add(i.get(t).toString());
+                else
+                    val.add("'" + i.get(t).toString() + "'");
+            } catch (IllegalAccessException ignored) {
+                val.add("null");
+            }
+        });
+        String s = InsertSqlFactory(name, val,aClass.getSimpleName());
+        PreparedStatement preparedStatement = this.connection.prepareStatement(s);
+        return preparedStatement.executeUpdate();
     }
 }
