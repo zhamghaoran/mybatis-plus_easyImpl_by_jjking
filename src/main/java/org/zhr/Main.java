@@ -11,14 +11,15 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException {
-        test1();
+        test();
     }
-    public void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         ConditionBuilder<STUDENT> studentConditionBuilder = new ConditionBuilder<>(STUDENT.class);
         ConditionBuilder<STUDENT> lt = studentConditionBuilder
                 .eq(STUDENT::getSSEX,"男")
                 .bt(STUDENT::getSAGE, 19)
-                .lt(STUDENT::getSAGE, 25);
+                .lt(STUDENT::getSAGE, 25)
+                .orderBy(STUDENT::getSAGE);
         SqlExecute<STUDENT> studentSqlExecute = new SqlExecute<>();
         List<STUDENT> students = studentSqlExecute.selectList(lt);
         students.forEach(System.out::println);

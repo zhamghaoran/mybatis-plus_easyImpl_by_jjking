@@ -1,6 +1,7 @@
 package org.zhr.Service;
 
 import lombok.extern.java.Log;
+import org.zhr.entity.Result;
 import org.zhr.utils.ConnectionFactory;
 
 import java.io.IOException;
@@ -10,50 +11,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Log
 public class SqlExecute<T> {
     private final Connection connection;
     private ConditionBuilder<T> conditionBuilder;
-
+    private SqlMakeFactoryImpl<T> sqlMakeFactory;
 
     public SqlExecute() throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         this.connection = ConnectionFactory.getSqlConnection();
-    }
-
-    private String SelectSqlMakeFactory(Class<?> className) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String classNameSimpleName = className.getSimpleName();
-        stringBuilder.append("select * from ").append(classNameSimpleName).append(" ");
-        Map<String,String> map = conditionBuilder.getEqualCondition();
-        stringBuilder.append("where ");
-        boolean mark = false;
-        if (conditionBuilder.getEqualCondition().size() != 0) {
-            for (Map.Entry<String ,String> i : map.entrySet()) {
-                stringBuilder.append(i.getKey()).append(" = ").append(i.getValue()).append(" and ");
-            }
-            mark = true;
-        }
-        if (conditionBuilder.getBtCondition().size() != 0) {
-            map = conditionBuilder.getBtCondition();
-            for (Map.Entry<String, String> i : map.entrySet()) {
-                stringBuilder.append(i.getKey()).append(" > ").append(i.getValue()).append(" and ");
-            }
-            mark = true;
-        }
-        if (conditionBuilder.getLtCondition().size() != 0) {
-            map = conditionBuilder.getLtCondition();
-            for (Map.Entry<String ,String> i : map.entrySet()) {
-                stringBuilder.append(i.getKey()).append(" < ").append(i.getValue()).append(" and ");
-            }
-            mark = true;
-        }
-        if (mark)
-            stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
-        stringBuilder.append(";");
-        log.info(stringBuilder.toString());
-        return stringBuilder.toString();
+        this.sqlMakeFactory = new SqlMakeFactoryImpl<>();
     }
 
     private String InsertSqlFactory(List<String> key,List<String> val,String tableName) {
@@ -70,16 +37,28 @@ public class SqlExecute<T> {
         log.info(sql.toString());
         return sql.toString();
     }
-
-    public T selectOne(ConditionBuilder<T> conditions) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
-        this.conditionBuilder = conditions;
+    public Result select(ConditionBuilder<T> conditions) throws SQLException {
         Class<?> aClass = conditions.aClass;
-        String s = SelectSqlMakeFactory(aClass);
-        System.out.println(s);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("select * from ").append(aClass.getSimpleName()).append(" ");
+        String sql = sqlMakeFactory.sqlMake(conditions);
+        stringBuilder.append(sql);
+        String s = stringBuilder.toString();
+        log.info("sql :   " + s);
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         ResultSet resultSet = preparedStatement.executeQuery();
         ResultSetMetaData metaData = resultSet.getMetaData();
         int column = metaData.getColumnCount();
+        return new Result(column,resultSet,metaData);
+
+    }
+    public T selectOne(ConditionBuilder<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
+        this.conditionBuilder = conditions;
+        Class<?> aClass = conditions.aClass;
+        Result select = select(conditions);
+        int column = select.getColum();
+        ResultSet resultSet = select.getResultSet();
+        ResultSetMetaData metaData = select.getResultSetMetaData();
         T o = (T) aClass.getDeclaredConstructor().newInstance();
         Field[] declaredFields = aClass.getDeclaredFields();
         if (resultSet.next()) {
@@ -96,11 +75,8 @@ public class SqlExecute<T> {
     public List<T> selectList(ConditionBuilder<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
-        String s = SelectSqlMakeFactory(aClass);
-        PreparedStatement preparedStatement = this.connection.prepareStatement(s);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        ResultSetMetaData metaData = resultSet.getMetaData();
-        int column = metaData.getColumnCount();
+        Result select = select(conditions);
+        ResultSet resultSet = select.getResultSet();
         List<T> result = new ArrayList<>();
         while (resultSet.next()) {
             T o = (T) aClass.getDeclaredConstructor().newInstance();
@@ -123,10 +99,11 @@ public class SqlExecute<T> {
         Arrays.stream(declaredFields).forEach(i -> {
             try {
                 i.setAccessible(true);
-                if (!i.getType().getTypeName().equals("java.lang.String"))
+                if (!i.getType().getTypeName().equals("java.lang.String")) {
                     val.add(i.get(t).toString());
-                else
+                } else {
                     val.add("'" + i.get(t).toString() + "'");
+                }
             } catch (IllegalAccessException ignored) {
                 val.add("null");
             }
