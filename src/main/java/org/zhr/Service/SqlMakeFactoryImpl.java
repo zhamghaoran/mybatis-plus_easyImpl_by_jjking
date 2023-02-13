@@ -18,13 +18,13 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
 
     public SqlMakeFactoryImpl() {
         forList = new ArrayList<>();
-        forList.add(ConditionBuilder.EQUAL_CONDITION);
-        forList.add(ConditionBuilder.BT_CONDITION);
-        forList.add(ConditionBuilder.LT_CONDITION);
-        forList.add(ConditionBuilder.ORDER_CONDITION);
+        forList.add(ConditionBuilderImpl.EQUAL_CONDITION);
+        forList.add(ConditionBuilderImpl.BT_CONDITION);
+        forList.add(ConditionBuilderImpl.LT_CONDITION);
+        forList.add(ConditionBuilderImpl.ORDER_CONDITION);
     }
 
-    public String sqlMake(ConditionBuilder<T> conditionBuilder) {
+    public String sqlMake(ConditionBuilderImpl<T> conditionBuilder) {
         Map<String, Object> conditionMap = conditionBuilder.getConditionMap();
         Method[] methods = this.getClass().getMethods();
         StringBuilder stringBuilder = new StringBuilder();

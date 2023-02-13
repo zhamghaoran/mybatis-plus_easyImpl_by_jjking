@@ -1,5 +1,6 @@
 package org.zhr.Service;
 
+import org.zhr.Service.Interface.ConditionBuilder;
 import org.zhr.Service.Interface.SFunction;
 
 import java.lang.invoke.SerializedLambda;
@@ -11,7 +12,7 @@ import java.util.Map;
 /**
  * @author 20179
  */
-public class ConditionBuilder<T> {
+public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     private final Map<String, String> equalConditions;
     private final Map<String, String> btCondition;
     private final Map<String, String> ltCondition;
@@ -25,18 +26,6 @@ public class ConditionBuilder<T> {
     public static final String ORDER_CONDITION = "orderby";
 
     public Map<String, Object> conditionMap;
-
-    public Map<String, String> getEqualCondition() {
-        return this.equalConditions;
-    }
-
-    public Map<String, String> getBtCondition() {
-        return this.btCondition;
-    }
-
-    public Map<String, String> getLtCondition() {
-        return this.ltCondition;
-    }
 
     public Map<String, Object> getConditionMap() {
         conditionMap = new HashMap<>(5);
@@ -55,7 +44,7 @@ public class ConditionBuilder<T> {
         return conditionMap;
     }
 
-    public ConditionBuilder(Class<T> tClass) throws NoSuchMethodException, InvocationTargetException {
+    public ConditionBuilderImpl(Class<T> tClass) throws NoSuchMethodException, InvocationTargetException {
         equalConditions = new HashMap<>();
         btCondition = new HashMap<>();
         ltCondition = new HashMap<>();
@@ -66,27 +55,27 @@ public class ConditionBuilder<T> {
         }
     }
 
-    public static <T> ConditionBuilder<T> builder(Class<T> tClass) throws InvocationTargetException, NoSuchMethodException {
-        return new ConditionBuilder(tClass);
+    public static <T> ConditionBuilderImpl<T> builder(Class<T> tClass) throws InvocationTargetException, NoSuchMethodException {
+        return new ConditionBuilderImpl<>(tClass);
     }
 
-    public <t, R> ConditionBuilder<T> eq(SFunction<t, R> sFunction, String condition) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException {
+    public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, "'" + condition + "'", EQUAL_CONDITION);
     }
 
-    public <t, R> ConditionBuilder<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public <t, R> ConditionBuilderImpl<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), BT_CONDITION);
     }
 
-    public <t, R> ConditionBuilder<T> lt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public <t, R> ConditionBuilderImpl<T> lt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), LT_CONDITION);
     }
 
-    public <t, R> ConditionBuilder<T> orderBy(SFunction<t, R> sFunction) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public <t, R> ConditionBuilderImpl<T> orderBy(SFunction<t, R> sFunction) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, null, ORDER_CONDITION);
     }
 
-    public <t, R> ConditionBuilder<T> addCondition(SFunction<t, R> sFunction, String Condition, String funcionName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
+    public <t, R> ConditionBuilderImpl<T> addCondition(SFunction<t, R> sFunction, String Condition, String funcionName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         Method methods = sFunction.getClass().getDeclaredMethod("writeReplace");
         methods.setAccessible(true);
         //反射调用

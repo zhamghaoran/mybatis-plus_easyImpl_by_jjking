@@ -1,6 +1,6 @@
 package org.zhr;
 
-import org.zhr.Service.ConditionBuilder;
+import org.zhr.Service.ConditionBuilderImpl;
 import org.zhr.Service.SqlExecute;
 import org.zhr.entity.STUDENT;
 
@@ -11,11 +11,11 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException {
-        test();
+        test1();
     }
     public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        ConditionBuilder<STUDENT> studentConditionBuilder = new ConditionBuilder<>(STUDENT.class);
-        ConditionBuilder<STUDENT> lt = studentConditionBuilder
+        ConditionBuilderImpl<STUDENT> studentConditionBuilder = new ConditionBuilderImpl<>(STUDENT.class);
+        ConditionBuilderImpl<STUDENT> lt = studentConditionBuilder
                 .eq(STUDENT::getSSEX,"男")
                 .bt(STUDENT::getSAGE, 19)
                 .lt(STUDENT::getSAGE, 25)

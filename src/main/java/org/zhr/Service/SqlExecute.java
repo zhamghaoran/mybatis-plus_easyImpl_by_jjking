@@ -15,7 +15,7 @@ import java.util.List;
 @Log
 public class SqlExecute<T> {
     private final Connection connection;
-    private ConditionBuilder<T> conditionBuilder;
+    private ConditionBuilderImpl<T> conditionBuilder;
     private SqlMakeFactoryImpl<T> sqlMakeFactory;
 
     public SqlExecute() throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -37,7 +37,7 @@ public class SqlExecute<T> {
         log.info(sql.toString());
         return sql.toString();
     }
-    public Result select(ConditionBuilder<T> conditions) throws SQLException {
+    public Result select(ConditionBuilderImpl<T> conditions) throws SQLException {
         Class<?> aClass = conditions.aClass;
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("select * from ").append(aClass.getSimpleName()).append(" ");
@@ -52,7 +52,7 @@ public class SqlExecute<T> {
         return new Result(column,resultSet,metaData);
 
     }
-    public T selectOne(ConditionBuilder<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
+    public T selectOne(ConditionBuilderImpl<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
         this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
         Result select = select(conditions);
@@ -72,7 +72,7 @@ public class SqlExecute<T> {
         }
         return o;
     }
-    public List<T> selectList(ConditionBuilder<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.conditionBuilder = conditions;
         Class<?> aClass = conditions.aClass;
         Result select = select(conditions);
@@ -99,10 +99,14 @@ public class SqlExecute<T> {
         Arrays.stream(declaredFields).forEach(i -> {
             try {
                 i.setAccessible(true);
-                if (!i.getType().getTypeName().equals("java.lang.String")) {
-                    val.add(i.get(t).toString());
+                if (i.get(t) == null) {
+                    val.add("null");
                 } else {
-                    val.add("'" + i.get(t).toString() + "'");
+                    if (!i.getType().getTypeName().equals("java.lang.String")) {
+                        val.add(i.get(t).toString());
+                    } else {
+                        val.add("'" + i.get(t).toString() + "'");
+                    }
                 }
             } catch (IllegalAccessException ignored) {
                 val.add("null");
