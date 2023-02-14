@@ -2,6 +2,7 @@ package org.zhr.Service;
 
 import org.zhr.Service.Interface.ConditionBuilder;
 import org.zhr.Service.Interface.SFunction;
+import org.zhr.utils.StringUtils;
 
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.InvocationTargetException;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @author 20179
  */
 public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
+    private StringUtils stringUtils;
     private final Map<String, String> equalConditions;
     private final Map<String, String> btCondition;
     private final Map<String, String> ltCondition;
@@ -27,37 +29,48 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
 
     public Map<String, Object> conditionMap;
 
+    private Map<String,String> attributeConversionMap (Map<String, String> conditionMap) {
+        for (Map.Entry<String,String> i : conditionMap.entrySet()) {
+            String s = stringUtils.smallHumpToUnderline(i.getKey());
+            String value = i.getValue();
+            conditionMap.remove(i.getKey());
+            conditionMap.put(s,value);
+        }
+        return conditionMap;
+    }
+    private String attributeConversionString(String condition) {
+        return stringUtils.smallHumpToUnderline(condition);
+    }
+
     public Map<String, Object> getConditionMap() {
         conditionMap = new HashMap<>(5);
-        if (equalConditions != null) {
-            conditionMap.put(EQUAL_CONDITION, equalConditions);
+
+        if (equalConditions.size() > 0) {
+            Map<String, String> stringStringMap = attributeConversionMap(equalConditions);
+            conditionMap.put(EQUAL_CONDITION, stringStringMap);
         }
-        if (btCondition != null) {
-            conditionMap.put(BT_CONDITION, btCondition);
+        if (btCondition.size() > 0) {
+            Map<String, String> stringStringMap = attributeConversionMap(btCondition);
+            conditionMap.put(BT_CONDITION, stringStringMap);
         }
-        if (ltCondition != null) {
-            conditionMap.put(LT_CONDITION, ltCondition);
+        if (ltCondition.size() > 0) {
+            Map<String, String> stringStringMap = attributeConversionMap(ltCondition);
+            conditionMap.put(LT_CONDITION, stringStringMap);
         }
         if (orderByCondition != null) {
-            conditionMap.put(ORDER_CONDITION, orderByCondition);
+            String s = attributeConversionString(orderByCondition);
+            conditionMap.put(ORDER_CONDITION, s);
         }
         return conditionMap;
     }
 
-    public ConditionBuilderImpl(Class<T> tClass) throws NoSuchMethodException, InvocationTargetException {
+    public ConditionBuilderImpl() throws NoSuchMethodException, InvocationTargetException {
         equalConditions = new HashMap<>();
         btCondition = new HashMap<>();
         ltCondition = new HashMap<>();
-        try {
-            T target = tClass.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        stringUtils = new StringUtils();
     }
 
-    public static <T> ConditionBuilderImpl<T> builder(Class<T> tClass) throws InvocationTargetException, NoSuchMethodException {
-        return new ConditionBuilderImpl<>(tClass);
-    }
 
     public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, "'" + condition + "'", EQUAL_CONDITION);
