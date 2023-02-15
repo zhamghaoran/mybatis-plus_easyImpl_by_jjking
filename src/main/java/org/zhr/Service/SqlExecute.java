@@ -19,7 +19,8 @@ public class SqlExecute<T> {
     private final SqlMakeFactoryImpl<T> sqlMakeFactory;
     private final NameCheckImpl nameCheck;
     private final Class<T> aClass;
-    private StringUtils stringUtils;
+    private final StringUtils stringUtils;
+    private final CacheImpl cache;
 
     public SqlExecute(Class<T> aclass) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         this.connection = ConnectionFactory.getSqlConnection();
@@ -27,6 +28,7 @@ public class SqlExecute<T> {
         this.nameCheck = new NameCheckImpl();
         this.stringUtils = new StringUtils();
         this.aClass = aclass;
+        this.cache = new CacheImpl();
     }
 
     private String InsertSqlFactory(List<String> key, List<String> val, String tableName) {
@@ -59,31 +61,22 @@ public class SqlExecute<T> {
         ResultSet resultSet = statement.executeQuery(s);
         ResultSetMetaData metaData = resultSet.getMetaData();
         int column = metaData.getColumnCount();
-        return new Result(column, resultSet, metaData);
+        Result result = new Result(column, resultSet, metaData, s);
+        cache.addCache(conditions,result);
+        return result;
 
     }
 
     public T selectOne(ConditionBuilderImpl<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException, IOException {
-        Result select = select(conditions);
-        int column = select.getColum();
-        ResultSet resultSet = select.getResultSet();
-        ResultSetMetaData metaData = select.getResultSetMetaData();
-        T o = this.aClass.getDeclaredConstructor().newInstance();
-        Field[] declaredFields = aClass.getDeclaredFields();
-        if (resultSet.next()) {
-            for (int i = 0; i < column; i++) {
-                Object val = resultSet.getObject(i + 1);
-                String columnName = metaData.getColumnName(i + 1);
-                Field declaredField = aClass.getDeclaredField(columnName);
-                declaredField.setAccessible(true);
-                declaredField.set(o, val);
-            }
-        }
-        return o;
+        return selectList(conditions).get(0);
     }
 
     public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException {
-        Result select = select(conditions);
+        Result select;
+        select = cache.getCache(conditions);
+        if (select == null) {
+            select = select(conditions);
+        }
         ResultSet resultSet = select.getResultSet();
         List<T> result = new ArrayList<>();
         while (resultSet.next()) {

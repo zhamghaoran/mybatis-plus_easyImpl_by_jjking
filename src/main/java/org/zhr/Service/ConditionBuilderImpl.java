@@ -75,7 +75,9 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, "'" + condition + "'", EQUAL_CONDITION);
     }
-
+    public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return addCondition(sFunction,  condition.toString() , EQUAL_CONDITION);
+    }
     public <t, R> ConditionBuilderImpl<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), BT_CONDITION);
     }

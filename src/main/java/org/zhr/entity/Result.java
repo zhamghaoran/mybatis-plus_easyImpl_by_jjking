@@ -18,4 +18,5 @@ public class Result {
     private int colum;
     private ResultSet resultSet;
     private ResultSetMetaData resultSetMetaData;
+    private String sql;
 }
