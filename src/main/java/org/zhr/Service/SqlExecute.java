@@ -12,6 +12,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 @Log
 public class SqlExecute<T> {
@@ -46,6 +47,30 @@ public class SqlExecute<T> {
         return sql.toString();
     }
 
+    private String DeleteSqlFactory(T t) {
+        if (t == null) {
+            throw new NullPointerException();
+        }
+        Field[] declaredFields = aClass.getDeclaredFields();
+        StringBuilder stringBuilder = new StringBuilder();
+        String simpleName = stringUtils.smallHumpToUnderline(aClass.getSimpleName());
+        stringBuilder.append("delete from ").append(simpleName).append(" where ");
+        Arrays.stream(declaredFields).forEach(i -> {
+            try {
+                i.setAccessible(true);
+                Object o = i.get(t);
+                if (o != null) {
+                    if (i.getType().equals(String.class))
+                        o = "'" + o + "'";
+                    stringBuilder.append(stringUtils.smallHumpToUnderline(i.getName())).append(" = ").append(o).append(" and ");
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
+        return stringBuilder.toString();
+    }
     public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException {
         StringBuilder stringBuilder = new StringBuilder();
         String name = this.aClass.getSimpleName();
@@ -59,14 +84,13 @@ public class SqlExecute<T> {
         if (cache1 != null)
             return cache1;
         log.info("sql :   " + s);
-        Statement statement = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+        Statement statement = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet resultSet = statement.executeQuery(s);
         ResultSetMetaData metaData = resultSet.getMetaData();
         int column = metaData.getColumnCount();
         Result result = new Result(column, resultSet, metaData, s);
-        cache.addCache(s,result);
+        cache.addCache(s, result);
         return result;
-
     }
 
     public T selectOne(ConditionBuilderImpl<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException, IOException {
@@ -92,12 +116,9 @@ public class SqlExecute<T> {
         return result;
     }
 
-    public int insert(T t) throws SQLException {
-        Field[] declaredFields = this.aClass.getDeclaredFields();
-        List<String> name = new ArrayList<>();
+    public List<String> getFiledVal(Field[] fields, T t) {
         List<String> val = new ArrayList<>();
-        Arrays.stream(declaredFields).forEach((i) -> name.add(i.getName()));
-        Arrays.stream(declaredFields).forEach(i -> {
+        Arrays.stream(fields).forEach(i -> {
             try {
                 i.setAccessible(true);
                 if (i.get(t) == null) {
@@ -113,8 +134,23 @@ public class SqlExecute<T> {
                 val.add("null");
             }
         });
+        return val;
+    }
+
+    public int insert(T t) throws SQLException {
+        Field[] declaredFields = this.aClass.getDeclaredFields();
+        List<String> name = new ArrayList<>();
+        Arrays.stream(declaredFields).forEach((i) -> name.add(i.getName()));
+        List<String> val = getFiledVal(aClass.getFields(), t);
         String s = InsertSqlFactory(name, val, aClass.getSimpleName());
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         return preparedStatement.executeUpdate();
+    }
+
+    public Integer delete(T t) throws SQLException {
+        String s = DeleteSqlFactory(t);
+        Statement statement = connection.createStatement();
+        log.info("sql : " + s);
+        return statement.executeUpdate(s);
     }
 }

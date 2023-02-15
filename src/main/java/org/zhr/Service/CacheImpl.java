@@ -2,7 +2,6 @@ package org.zhr.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.zhr.Service.Interface.Cache;
-import org.zhr.Service.Interface.ConditionBuilder;
 import org.zhr.entity.Result;
 
 import java.util.Map;

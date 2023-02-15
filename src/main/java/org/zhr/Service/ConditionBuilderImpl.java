@@ -9,7 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author 20179
@@ -30,15 +29,16 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
 
     public Map<String, Object> conditionMap;
 
-    private Map<String,String> attributeConversionMap (Map<String, String> conditionMap) {
-        for (Map.Entry<String,String> i : conditionMap.entrySet()) {
+    private Map<String, String> attributeConversionMap(Map<String, String> conditionMap) {
+        for (Map.Entry<String, String> i : conditionMap.entrySet()) {
             String s = stringUtils.smallHumpToUnderline(i.getKey());
             String value = i.getValue();
             conditionMap.remove(i.getKey());
-            conditionMap.put(s,value);
+            conditionMap.put(s, value);
         }
         return conditionMap;
     }
+
     private String attributeConversionString(String condition) {
         return stringUtils.smallHumpToUnderline(condition);
     }
@@ -65,7 +65,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         return conditionMap;
     }
 
-    public ConditionBuilderImpl() throws NoSuchMethodException, InvocationTargetException {
+    public ConditionBuilderImpl() {
         equalConditions = new HashMap<>();
         btCondition = new HashMap<>();
         ltCondition = new HashMap<>();
@@ -76,9 +76,11 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, "'" + condition + "'", EQUAL_CONDITION);
     }
+
     public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        return addCondition(sFunction,  condition.toString() , EQUAL_CONDITION);
+        return addCondition(sFunction, condition.toString(), EQUAL_CONDITION);
     }
+
     public <t, R> ConditionBuilderImpl<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), BT_CONDITION);
     }
@@ -117,15 +119,4 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         return this;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ConditionBuilderImpl<?> that)) return false;
-        return  Objects.equals(equalConditions, that.equalConditions) && Objects.equals(btCondition, that.btCondition) && Objects.equals(ltCondition, that.ltCondition) && Objects.equals(orderByCondition, that.orderByCondition) && Objects.equals(aClass, that.aClass);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(stringUtils, equalConditions, btCondition, ltCondition, orderByCondition, aClass, getConditionMap());
-    }
 }

@@ -1,7 +1,6 @@
 package org.zhr.Service;
 
 import org.zhr.Service.Interface.SqlMakeFactory;
-import org.zhr.utils.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -91,8 +90,6 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
     }
 
     public String orderby(String s) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(" order by " + s);
-        return stringBuilder.toString();
+        return " order by " + s;
     }
 }
