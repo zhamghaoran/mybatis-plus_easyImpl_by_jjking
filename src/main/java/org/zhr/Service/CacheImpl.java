@@ -5,12 +5,13 @@ import org.zhr.Service.Interface.Cache;
 import org.zhr.Service.Interface.ConditionBuilder;
 import org.zhr.entity.Result;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class CacheImpl implements Cache {
-    ConcurrentMap<ConditionBuilder,Result> concurrentMap;
+    ConcurrentMap<String,Result> concurrentMap;
     static CacheImpl cache;
     public CacheImpl () {
         concurrentMap = new ConcurrentHashMap<>();
@@ -22,8 +23,13 @@ public class CacheImpl implements Cache {
         return cache;
     }
     @Override
-    public Result getCache(ConditionBuilder conditionBuilder) {
-        Result result = concurrentMap.get(conditionBuilder);
+    public Result getCache(String sql) {
+        Result result = null;
+        for (Map.Entry<String,Result> i : concurrentMap.entrySet()) {
+            if (i.getKey().equals(sql)) {
+                result = i.getValue();
+            }
+        }
         if (result != null) {
             log.info("缓存命中 sql :" + result.getSql());
             return result;
@@ -32,8 +38,8 @@ public class CacheImpl implements Cache {
     }
 
     @Override
-    public void addCache(ConditionBuilder conditionBuilder, Result result) {
-        concurrentMap.put(conditionBuilder,result);
+    public void addCache(String sql, Result result) {
+        concurrentMap.put(sql,result);
     }
 
 }

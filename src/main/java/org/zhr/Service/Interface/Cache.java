@@ -1,9 +1,11 @@
 package org.zhr.Service.Interface;
 
+import org.zhr.Service.ConditionBuilderImpl;
 import org.zhr.entity.Result;
 
 public interface Cache {
-    Result getCache(ConditionBuilder conditionBuilder);
+    Result getCache(String  sql);
 
-    void addCache(ConditionBuilder conditionBuilder,Result result);
+
+    void addCache(String sql, Result result);
 }

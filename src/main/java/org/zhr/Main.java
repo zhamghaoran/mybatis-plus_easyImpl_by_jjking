@@ -8,6 +8,7 @@ import org.zhr.entity.jobGrades;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 public class Main {
@@ -19,15 +20,17 @@ public class Main {
                 .bt(jobGrades::getLowestSal,3000)
                 .eq(jobGrades::getHighestSal,14999);
         List<jobGrades> jobGrade = jobGradesSqlExecute.selectList(jobGradesConditionBuilder);
-
-
+        Iterator<jobGrades> iterator = jobGrade.iterator();
+        for(int i = 0; !jobGrade.isEmpty();i++){
+            jobGrade.remove(jobGrade.get(i));
+        }
         ConditionBuilderImpl<jobGrades> jobGradesConditionBuilder1 = new ConditionBuilderImpl<>();
         SqlExecute<jobGrades> jobGradesSqlExecute1 = new SqlExecute<>(jobGrades.class);
         jobGradesConditionBuilder1
                 .bt(jobGrades::getLowestSal,3000)
                 .eq(jobGrades::getHighestSal,14999);
-        List<jobGrades> jobGrades1 = jobGradesSqlExecute1.selectList(jobGradesConditionBuilder);
-
+        List<jobGrades> jobGrades1 = jobGradesSqlExecute1.selectList(jobGradesConditionBuilder1);
+        jobGrades1.forEach(System.out::println);
     }
 
     public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -48,4 +51,5 @@ public class Main {
         Integer insert = studentSqlExecute.insert(student);
         System.out.println(insert);
     }
+
 }

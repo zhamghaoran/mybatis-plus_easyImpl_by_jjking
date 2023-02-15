@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 20179
@@ -116,4 +117,15 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         return this;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ConditionBuilderImpl<?> that)) return false;
+        return  Objects.equals(equalConditions, that.equalConditions) && Objects.equals(btCondition, that.btCondition) && Objects.equals(ltCondition, that.ltCondition) && Objects.equals(orderByCondition, that.orderByCondition) && Objects.equals(aClass, that.aClass);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(stringUtils, equalConditions, btCondition, ltCondition, orderByCondition, aClass, getConditionMap());
+    }
 }

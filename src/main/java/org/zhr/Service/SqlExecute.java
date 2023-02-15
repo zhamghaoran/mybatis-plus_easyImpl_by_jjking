@@ -28,7 +28,7 @@ public class SqlExecute<T> {
         this.nameCheck = new NameCheckImpl();
         this.stringUtils = new StringUtils();
         this.aClass = aclass;
-        this.cache = new CacheImpl();
+        this.cache = CacheImpl.getInstance();
     }
 
     private String InsertSqlFactory(List<String> key, List<String> val, String tableName) {
@@ -53,16 +53,18 @@ public class SqlExecute<T> {
         stringBuilder.append("select * from ").append(name).append(" ");
 
         String sql = sqlMakeFactory.sqlMake(conditions);
-
         stringBuilder.append(sql);
         String s = stringBuilder.toString();
+        Result cache1 = cache.getCache(s);
+        if (cache1 != null)
+            return cache1;
         log.info("sql :   " + s);
-        Statement statement = this.connection.createStatement();
+        Statement statement = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
         ResultSet resultSet = statement.executeQuery(s);
         ResultSetMetaData metaData = resultSet.getMetaData();
         int column = metaData.getColumnCount();
         Result result = new Result(column, resultSet, metaData, s);
-        cache.addCache(conditions,result);
+        cache.addCache(s,result);
         return result;
 
     }
@@ -73,12 +75,10 @@ public class SqlExecute<T> {
 
     public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException {
         Result select;
-        select = cache.getCache(conditions);
-        if (select == null) {
-            select = select(conditions);
-        }
+        select = select(conditions);
         ResultSet resultSet = select.getResultSet();
         List<T> result = new ArrayList<>();
+        resultSet.beforeFirst();
         while (resultSet.next()) {
             T o = this.aClass.getDeclaredConstructor().newInstance();
             Field[] declaredFields = aClass.getDeclaredFields();
