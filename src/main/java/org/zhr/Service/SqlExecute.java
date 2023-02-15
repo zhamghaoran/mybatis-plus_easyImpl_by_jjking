@@ -71,10 +71,10 @@ public class SqlExecute<T> {
         stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
         return stringBuilder.toString();
     }
-    public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException {
+    public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         StringBuilder stringBuilder = new StringBuilder();
         String name = this.aClass.getSimpleName();
-        name = nameCheck.CheckTableName(name);
+        name = nameCheck.CheckTableName(name,aClass);
         stringBuilder.append("select * from ").append(name).append(" ");
 
         String sql = sqlMakeFactory.sqlMake(conditions);

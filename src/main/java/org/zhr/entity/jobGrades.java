@@ -3,10 +3,12 @@ package org.zhr.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.zhr.annotation.Table;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(tableName = "jobGrades")
 public class jobGrades {
     private String gradeLevel;
     private Integer lowestSal;

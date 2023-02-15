@@ -1,10 +1,13 @@
 package org.zhr.Service;
 
+import org.zhr.Service.Interface.Cache;
 import org.zhr.Service.Interface.NameCheck;
+import org.zhr.annotation.Table;
 import org.zhr.utils.ConnectionFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +51,11 @@ public class NameCheckImpl implements NameCheck {
     }
 
     @Override
-    public String CheckTableName(String name) throws SQLException, IOException {
+    public String CheckTableName(String name,Class<?> aclass) throws SQLException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String s = IsCustomTableName(aclass);
+        if (s != null) {
+            return s;
+        }
         String sql = "show tables";
         String databaseName = getDatabaseName();
         String sqlGet = "Tables_in_" + databaseName;
@@ -64,5 +71,12 @@ public class NameCheckImpl implements NameCheck {
             return name1;
         }
         else throw new SQLException("表名查询失败");
+    }
+    private String IsCustomTableName(Class<?> aClass) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        if (aClass.isAnnotationPresent(Table.class)) {
+            Table annotation = aClass.getAnnotation(Table.class);
+            return annotation.tableName();
+        }
+        return null;
     }
 }
