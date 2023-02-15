@@ -3,6 +3,8 @@
 新增了属性名的自动对应。
 把以小驼峰风格命名的java实体转化到以下划线命名的表
 可以自动转化表名和实体名，列名和属性名
+可以使用TableName注解来自定义表名
+已支持的方法 eq bt ls orderBy insert delete
 ## 使用介绍
 ```java
 public class test1{
