@@ -3,13 +3,15 @@ package org.zhr.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.zhr.annotation.Filed;
 import org.zhr.annotation.Table;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(tableName = "jobGrades")
+@Table("job_grades")
 public class jobGrades {
+    @Filed("grade_level")
     private String gradeLevel;
     private Integer lowestSal;
     private Integer highestSal;

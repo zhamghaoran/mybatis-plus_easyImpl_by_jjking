@@ -16,7 +16,7 @@ public class Main {
         test2();
     }
 
-    public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException {
         ConditionBuilderImpl<STUDENT> studentConditionBuilder = new ConditionBuilderImpl<>();
         ConditionBuilderImpl<STUDENT> lt = studentConditionBuilder
                 .eq(STUDENT::getSSEX,"男")
@@ -34,7 +34,7 @@ public class Main {
         Integer insert = studentSqlExecute.insert(student);
         System.out.println(insert);
     }
-    public static void test2() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    public static void test2() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, NoSuchFieldException {
         ConditionBuilderImpl<jobGrades> jobGradesConditionBuilder = new ConditionBuilderImpl<>();
         SqlExecute<jobGrades> jobGradesSqlExecute = new SqlExecute<>(jobGrades.class);
         jobGradesConditionBuilder

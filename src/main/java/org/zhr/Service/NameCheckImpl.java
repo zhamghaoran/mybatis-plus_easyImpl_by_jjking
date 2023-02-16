@@ -72,10 +72,10 @@ public class NameCheckImpl implements NameCheck {
         }
         else throw new SQLException("表名查询失败");
     }
-    private String IsCustomTableName(Class<?> aClass) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private String IsCustomTableName(Class<?> aClass) {
         if (aClass.isAnnotationPresent(Table.class)) {
             Table annotation = aClass.getAnnotation(Table.class);
-            return annotation.tableName();
+            return annotation.value();
         }
         return null;
     }

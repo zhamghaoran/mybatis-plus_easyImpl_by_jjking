@@ -71,7 +71,7 @@ public class SqlExecute<T> {
         stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
         return stringBuilder.toString();
     }
-    public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, NoSuchFieldException {
         StringBuilder stringBuilder = new StringBuilder();
         String name = this.aClass.getSimpleName();
         name = nameCheck.CheckTableName(name,aClass);
@@ -97,7 +97,7 @@ public class SqlExecute<T> {
         return selectList(conditions).get(0);
     }
 
-    public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException {
+    public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException, NoSuchFieldException {
         Result select;
         select = select(conditions);
         ResultSet resultSet = select.getResultSet();

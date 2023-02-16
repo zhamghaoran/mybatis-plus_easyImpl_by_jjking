@@ -24,7 +24,7 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
         forList.add(ConditionBuilderImpl.ORDER_CONDITION);
     }
 
-    public String sqlMake(ConditionBuilderImpl<T> conditionBuilder) {
+    public String sqlMake(ConditionBuilderImpl<T> conditionBuilder) throws NoSuchFieldException {
         Map<String, Object> conditionMap = conditionBuilder.getConditionMap();
         Method[] methods = this.getClass().getMethods();
         StringBuilder stringBuilder = new StringBuilder();

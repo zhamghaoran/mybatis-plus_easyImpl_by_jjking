@@ -2,9 +2,11 @@ package org.zhr.Service;
 
 import org.zhr.Service.Interface.ConditionBuilder;
 import org.zhr.Service.Interface.SFunction;
+import org.zhr.annotation.Filed;
 import org.zhr.utils.StringUtils;
 
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -29,9 +31,16 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
 
     public Map<String, Object> conditionMap;
 
-    private Map<String, String> attributeConversionMap(Map<String, String> conditionMap) {
+    private Map<String, String> attributeConversionMap(Map<String, String> conditionMap) throws NoSuchFieldException {
         for (Map.Entry<String, String> i : conditionMap.entrySet()) {
-            String s = stringUtils.smallHumpToUnderline(i.getKey());
+            Field field = this.aClass.getDeclaredField(i.getKey());
+            String s;
+            if (field.isAnnotationPresent(Filed.class)) {
+                Filed annotation = field.getAnnotation(Filed.class);
+                s = annotation.value();
+            } else {
+                s = stringUtils.smallHumpToUnderline(i.getKey());
+            }
             String value = i.getValue();
             conditionMap.remove(i.getKey());
             conditionMap.put(s, value);
@@ -43,7 +52,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         return stringUtils.smallHumpToUnderline(condition);
     }
 
-    public Map<String, Object> getConditionMap() {
+    public Map<String, Object> getConditionMap() throws NoSuchFieldException {
         conditionMap = new HashMap<>(5);
 
         if (equalConditions.size() > 0) {
@@ -104,6 +113,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         this.aClass = Class.forName(implClass.replace("/", "."));
         // 获取方法名
         String name = serializedLambda.getImplMethodName().substring(3);
+        name = name.substring(0,1).toLowerCase() + name.substring(1);
         if (funcionName.equals(EQUAL_CONDITION)) {
             equalConditions.put(name, Condition);
         }

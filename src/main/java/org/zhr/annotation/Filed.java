@@ -6,5 +6,5 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE,ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Filed {
-    String filedName();
+    String value();
 }
