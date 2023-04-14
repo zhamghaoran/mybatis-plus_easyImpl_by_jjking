@@ -3,6 +3,7 @@ package org.zhr;
 import org.zhr.Service.ConditionBuilderImpl;
 import org.zhr.Service.SqlExecute;
 import org.zhr.entity.STUDENT;
+import org.zhr.entity.User;
 import org.zhr.entity.jobGrades;
 
 import java.io.IOException;
@@ -11,20 +12,27 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * @author 20179
+ */
 public class Main {
-    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException, InvocationTargetException, NoSuchMethodException {
-        test2();
+    public static void main(String[] args) {
+        try {
+            test4();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void test() throws InvocationTargetException, NoSuchMethodException, SQLException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchFieldException {
         ConditionBuilderImpl<STUDENT> studentConditionBuilder = new ConditionBuilderImpl<>();
-        ConditionBuilderImpl<STUDENT> lt = studentConditionBuilder
+        studentConditionBuilder
                 .eq(STUDENT::getSSEX,"男")
                 .bt(STUDENT::getSAGE, 19)
                 .lt(STUDENT::getSAGE, 25)
                 .orderBy(STUDENT::getSAGE);
         SqlExecute<STUDENT> studentSqlExecute = new SqlExecute<>(STUDENT.class);
-        List<STUDENT> students = studentSqlExecute.selectList(lt);
+        List<STUDENT> students = studentSqlExecute.selectList(studentConditionBuilder);
         students.forEach(System.out::println);
     }
 
@@ -61,5 +69,9 @@ public class Main {
         Integer delete = jobGradesSqlExecute.delete(jobGrades);
         System.out.println(delete);
     }
-
+    public static void test4() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException, NoSuchFieldException {
+        SqlExecute<User> userSqlExecute = new SqlExecute<>(User.class);
+        List<User> users = userSqlExecute.selectList(null);
+        users.forEach(System.out::println);
+    }
 }

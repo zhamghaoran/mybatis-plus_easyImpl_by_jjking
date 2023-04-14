@@ -82,6 +82,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     }
 
 
+    @Override
     public <t, R> ConditionBuilderImpl<T> eq(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, "'" + condition + "'", EQUAL_CONDITION);
     }
@@ -90,18 +91,22 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         return addCondition(sFunction, condition.toString(), EQUAL_CONDITION);
     }
 
+    @Override
     public <t, R> ConditionBuilderImpl<T> bt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), BT_CONDITION);
     }
 
+    @Override
     public <t, R> ConditionBuilderImpl<T> lt(SFunction<t, R> sFunction, Integer condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, condition.toString(), LT_CONDITION);
     }
 
+    @Override
     public <t, R> ConditionBuilderImpl<T> orderBy(SFunction<t, R> sFunction) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         return addCondition(sFunction, null, ORDER_CONDITION);
     }
 
+    @Override
     public <t, R> ConditionBuilderImpl<T> addCondition(SFunction<t, R> sFunction, String Condition, String funcionName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         Method methods = sFunction.getClass().getDeclaredMethod("writeReplace");
         methods.setAccessible(true);
@@ -113,7 +118,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         this.aClass = Class.forName(implClass.replace("/", "."));
         // 获取方法名
         String name = serializedLambda.getImplMethodName().substring(3);
-        name = name.substring(0,1).toLowerCase() + name.substring(1);
+        name = name.substring(0, 1).toLowerCase() + name.substring(1);
         if (funcionName.equals(EQUAL_CONDITION)) {
             equalConditions.put(name, Condition);
         }

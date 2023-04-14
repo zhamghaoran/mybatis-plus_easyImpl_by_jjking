@@ -32,7 +32,9 @@ public class CacheImpl implements Cache {
         if (result != null) {
             log.info("缓存命中 sql :" + result.getSql());
             return result;
-        } else return null;
+        } else {
+            return null;
+        }
 
     }
 

@@ -24,10 +24,14 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
         forList.add(ConditionBuilderImpl.ORDER_CONDITION);
     }
 
-    public String sqlMake(ConditionBuilderImpl<T> conditionBuilder) throws NoSuchFieldException {
+    public String sqlMake(String name, ConditionBuilderImpl<T> conditionBuilder) throws NoSuchFieldException {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("select * from ").append(name).append(" ");
+        if (conditionBuilder == null) {
+            return stringBuilder.toString();
+        }
         Map<String, Object> conditionMap = conditionBuilder.getConditionMap();
         Method[] methods = this.getClass().getMethods();
-        StringBuilder stringBuilder = new StringBuilder();
         forList.forEach(i -> {
             if (conditionMap.get(i) != null) {
                 Arrays.stream(methods).forEach(j -> {
@@ -42,10 +46,10 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
                 });
             }
         });
-
         return stringBuilder.toString();
     }
 
+    @Override
     public String where(Map<String, String> map) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(" where ");
@@ -57,12 +61,12 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
         return stringBuilder.toString();
     }
 
+    @Override
     public String lt(Map<String, String> map) {
         StringBuilder stringBuilder = new StringBuilder();
         if (whereMark) {
             stringBuilder.append(" and ");
-        }
-        else  {
+        } else {
             stringBuilder.append(" where ");
             whereMark = true;
         }
@@ -73,12 +77,12 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
         return stringBuilder.toString();
     }
 
+    @Override
     public String bt(Map<String, String> map) {
         StringBuilder stringBuilder = new StringBuilder();
         if (whereMark) {
             stringBuilder.append(" and ");
-        }
-        else  {
+        } else {
             stringBuilder.append(" where ");
             whereMark = true;
         }
@@ -89,6 +93,7 @@ public class SqlMakeFactoryImpl<T> implements SqlMakeFactory {
         return stringBuilder.toString();
     }
 
+    @Override
     public String orderby(String s) {
         return " order by " + s;
     }

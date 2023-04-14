@@ -12,8 +12,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
 
+/**
+ * @author 20179
+ */
 @Log
 public class SqlExecute<T> {
     private final Connection connection;
@@ -32,7 +34,7 @@ public class SqlExecute<T> {
         this.cache = CacheImpl.getInstance();
     }
 
-    private String InsertSqlFactory(List<String> key, List<String> val, String tableName) {
+    private String insertSqlFactory(List<String> key, List<String> val, String tableName) {
         StringBuilder sql = new StringBuilder();
         sql.append("insert into ").append(tableName).append(" ");
         sql.append("( ");
@@ -47,7 +49,7 @@ public class SqlExecute<T> {
         return sql.toString();
     }
 
-    private String DeleteSqlFactory(T t) {
+    private String deleteSqlFactory(T t) {
         if (t == null) {
             throw new NullPointerException();
         }
@@ -60,47 +62,65 @@ public class SqlExecute<T> {
                 i.setAccessible(true);
                 Object o = i.get(t);
                 if (o != null) {
-                    if (i.getType().equals(String.class))
+                    if (i.getType().equals(String.class)) {
                         o = "'" + o + "'";
+                    }
                     stringBuilder.append(stringUtils.smallHumpToUnderline(i.getName())).append(" = ").append(o).append(" and ");
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         });
-        stringBuilder.delete(stringBuilder.length() - 4,stringBuilder.length());
+        stringBuilder.delete(stringBuilder.length() - 4, stringBuilder.length());
         return stringBuilder.toString();
     }
     public Result select(ConditionBuilderImpl<T> conditions) throws SQLException, IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, NoSuchFieldException {
-        StringBuilder stringBuilder = new StringBuilder();
-        String name = this.aClass.getSimpleName();
-        name = nameCheck.CheckTableName(name,aClass);
-        stringBuilder.append("select * from ").append(name).append(" ");
+        // 对表名进行校验
+        String name = nameCheck.CheckTableName(aClass);
+        // 执行查询操作
+        return execute(conditions, name);
 
-        String sql = sqlMakeFactory.sqlMake(conditions);
-        stringBuilder.append(sql);
-        String s = stringBuilder.toString();
-        Result cache1 = cache.getCache(s);
-        if (cache1 != null)
+    }
+    public Result execute(ConditionBuilderImpl<T> conditions, String name) throws NoSuchFieldException, SQLException {
+        // 生成sql
+        String sql = sqlMakeFactory.sqlMake(name,conditions);
+        log.info("sql :   " + sql);
+        // 缓存判断
+        Result cache1 = cache.getCache(sql);
+        if (cache1 != null) {
             return cache1;
-        log.info("sql :   " + s);
+        }
+        // 执行sql
+        return executeSql(sql);
+    }
+
+    private Result executeSql(String sql) throws SQLException {
         Statement statement = this.connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        ResultSet resultSet = statement.executeQuery(s);
+        ResultSet resultSet = statement.executeQuery(sql);
         ResultSetMetaData metaData = resultSet.getMetaData();
         int column = metaData.getColumnCount();
-        Result result = new Result(column, resultSet, metaData, s);
-        cache.addCache(s, result);
+        Result result = new Result(column, resultSet, metaData, sql);
+        cache.addCache(sql, result);
         return result;
     }
 
     public T selectOne(ConditionBuilderImpl<T> conditions) throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException, IOException {
-        return selectList(conditions).get(0);
+        List<T> ts = selectList(conditions);
+        if (ts.size() == 1) {
+            return ts.get(0);
+        } else {
+            throw new SQLException("查询结果大于1");
+        }
     }
 
     public List<T> selectList(ConditionBuilderImpl<T> conditions) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException, NoSuchFieldException {
-        Result select;
-        select = select(conditions);
+        Result select = select(conditions);
         ResultSet resultSet = select.getResultSet();
+        return getFinalResult(resultSet);
+
+    }
+
+    public List<T> getFinalResult(ResultSet resultSet) throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         List<T> result = new ArrayList<>();
         resultSet.beforeFirst();
         while (resultSet.next()) {
@@ -124,7 +144,7 @@ public class SqlExecute<T> {
                 if (i.get(t) == null) {
                     val.add("null");
                 } else {
-                    if (!i.getType().getTypeName().equals("java.lang.String")) {
+                    if (!"java.lang.String".equals(i.getType().getTypeName())) {
                         val.add(i.get(t).toString());
                     } else {
                         val.add("'" + i.get(t).toString() + "'");
@@ -142,13 +162,13 @@ public class SqlExecute<T> {
         List<String> name = new ArrayList<>();
         Arrays.stream(declaredFields).forEach((i) -> name.add(i.getName()));
         List<String> val = getFiledVal(aClass.getFields(), t);
-        String s = InsertSqlFactory(name, val, aClass.getSimpleName());
+        String s = insertSqlFactory(name, val, aClass.getSimpleName());
         PreparedStatement preparedStatement = this.connection.prepareStatement(s);
         return preparedStatement.executeUpdate();
     }
 
     public Integer delete(T t) throws SQLException {
-        String s = DeleteSqlFactory(t);
+        String s = deleteSqlFactory(t);
         Statement statement = connection.createStatement();
         log.info("sql : " + s);
         return statement.executeUpdate(s);

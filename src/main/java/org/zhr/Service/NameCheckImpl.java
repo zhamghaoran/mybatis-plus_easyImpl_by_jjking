@@ -1,6 +1,5 @@
 package org.zhr.Service;
 
-import org.zhr.Service.Interface.Cache;
 import org.zhr.Service.Interface.NameCheck;
 import org.zhr.annotation.Table;
 import org.zhr.utils.ConnectionFactory;
@@ -8,11 +7,17 @@ import org.zhr.utils.ConnectionFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * @author 20179
+ */
 public class NameCheckImpl implements NameCheck {
     private Connection connection;
 
@@ -44,14 +49,16 @@ public class NameCheckImpl implements NameCheck {
     private String getName(List<String> tableName, String name) {
         name = smallHumpToUnderline(name);
         for (String i : tableName) {
-            if (i.equals(name))
+            if (i.equals(name)) {
                 return name;
+            }
         }
         return null;
     }
 
     @Override
-    public String CheckTableName(String name,Class<?> aclass) throws SQLException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public String CheckTableName(Class<?> aclass) throws SQLException, IOException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String simpleName = aclass.getSimpleName();
         String s = IsCustomTableName(aclass);
         if (s != null) {
             return s;
@@ -66,11 +73,13 @@ public class NameCheckImpl implements NameCheck {
             String tablesInStudentDb = (String) resultSet.getObject(sqlGet);
             tableName.add(tablesInStudentDb);
         }
-        String name1 = getName(tableName, name);
+        String name1 = getName(tableName, simpleName);
         if (name1 != null) {
             return name1;
         }
-        else throw new SQLException("表名查询失败");
+        else {
+            throw new SQLException("表名查询失败");
+        }
     }
     private String IsCustomTableName(Class<?> aClass) {
         if (aClass.isAnnotationPresent(Table.class)) {
