@@ -3,6 +3,7 @@ package org.zhr.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.zhr.annotation.Filed;
 import org.zhr.annotation.Table;
 
 import java.sql.Timestamp;
@@ -15,7 +16,8 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @Table(value = "user")
 public class User {
-    private Long id;
+    @Filed("id")
+    private Long ID;
     private String username;
     private String phone;
     private String password;

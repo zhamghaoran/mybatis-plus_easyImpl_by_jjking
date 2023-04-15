@@ -1,6 +1,7 @@
 package org.zhr.Service;
 
 import lombok.extern.java.Log;
+import org.zhr.annotation.Filed;
 import org.zhr.entity.Result;
 import org.zhr.utils.ConnectionFactory;
 import org.zhr.utils.StringUtils;
@@ -128,12 +129,22 @@ public class SqlExecute<T> {
             Field[] declaredFields = aClass.getDeclaredFields();
             for (Field i : declaredFields) {
                 i.setAccessible(true);
-                Object object = resultSet.getObject(stringUtils.smallHumpToUnderline(i.getName()));
+                Object object = resultSet.getObject(getRealFieldName(i));
                 i.set(o, object);
             }
             result.add(o);
         }
         return result;
+    }
+
+    // 获取属性与列的对应关系
+    private String getRealFieldName(Field i) {
+        if (i.isAnnotationPresent(Filed.class)) {
+            Filed annotation = i.getAnnotation(Filed.class);
+            return annotation.value();
+        } else {
+            return StringUtils.smallHumpToUnderline(i.getName());
+        }
     }
 
     public List<String> getFiledVal(Field[] fields, T t) {

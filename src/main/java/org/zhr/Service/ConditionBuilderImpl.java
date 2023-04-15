@@ -20,6 +20,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     private final Map<String, String> equalConditions;
     private final Map<String, String> btCondition;
     private final Map<String, String> ltCondition;
+    private final Map<String, String> likeCondition;
 
     private String orderByCondition;
     public Class<?> aClass;
@@ -28,7 +29,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     public static final String BT_CONDITION = "bt";
     public static final String LT_CONDITION = "lt";
     public static final String ORDER_CONDITION = "orderby";
-
+    public static final String LIKE_CONDITION = "like";
     public Map<String, Object> conditionMap;
 
     private Map<String, String> attributeConversionMap(Map<String, String> conditionMap) throws NoSuchFieldException {
@@ -39,7 +40,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
                 Filed annotation = field.getAnnotation(Filed.class);
                 s = annotation.value();
             } else {
-                s = stringUtils.smallHumpToUnderline(i.getKey());
+                s = StringUtils.smallHumpToUnderline(i.getKey());
             }
             String value = i.getValue();
             conditionMap.remove(i.getKey());
@@ -49,27 +50,26 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     }
 
     private String attributeConversionString(String condition) {
-        return stringUtils.smallHumpToUnderline(condition);
+        return StringUtils.smallHumpToUnderline(condition);
     }
 
     public Map<String, Object> getConditionMap() throws NoSuchFieldException {
-        conditionMap = new HashMap<>(5);
 
+        conditionMap = new HashMap<>();
         if (equalConditions.size() > 0) {
-            Map<String, String> stringStringMap = attributeConversionMap(equalConditions);
-            conditionMap.put(EQUAL_CONDITION, stringStringMap);
+            conditionMap.put(EQUAL_CONDITION, equalConditions);
         }
         if (btCondition.size() > 0) {
-            Map<String, String> stringStringMap = attributeConversionMap(btCondition);
-            conditionMap.put(BT_CONDITION, stringStringMap);
+            conditionMap.put(BT_CONDITION, btCondition);
         }
         if (ltCondition.size() > 0) {
-            Map<String, String> stringStringMap = attributeConversionMap(ltCondition);
-            conditionMap.put(LT_CONDITION, stringStringMap);
+            conditionMap.put(LT_CONDITION, ltCondition);
         }
         if (orderByCondition != null) {
-            String s = attributeConversionString(orderByCondition);
-            conditionMap.put(ORDER_CONDITION, s);
+            conditionMap.put(ORDER_CONDITION, orderByCondition);
+        }
+        if (likeCondition.size() > 0) {
+            conditionMap.put(LIKE_CONDITION, likeCondition);
         }
         return conditionMap;
     }
@@ -79,6 +79,7 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         btCondition = new HashMap<>();
         ltCondition = new HashMap<>();
         stringUtils = new StringUtils();
+        likeCondition = new HashMap<>();
     }
 
 
@@ -107,6 +108,11 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
     }
 
     @Override
+    public <t, R> ConditionBuilderImpl<T> like(SFunction<t, R> sFunction, String condition) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        return addCondition(sFunction, condition, LIKE_CONDITION);
+    }
+
+    @Override
     public <t, R> ConditionBuilderImpl<T> addCondition(SFunction<t, R> sFunction, String Condition, String funcionName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException {
         Method methods = sFunction.getClass().getDeclaredMethod("writeReplace");
         methods.setAccessible(true);
@@ -130,6 +136,9 @@ public class ConditionBuilderImpl<T> implements ConditionBuilder<T> {
         }
         if (funcionName.equals(ORDER_CONDITION)) {
             orderByCondition = name;
+        }
+        if (funcionName.equals(LIKE_CONDITION)) {
+            likeCondition.put(name,Condition);
         }
         return this;
     }
